@@ -1,0 +1,4 @@
+for file in phi_Rey*.dat
+do
+    mv -i "${file}" "${file/.dat/.ran}"
+done

@@ -1,0 +1,12 @@
+mv fluc_iphi* FLUC_IPHI
+mv pert_vort_anad_dil_iphi* PERT_VORT_AND_DIL_IPHI
+mv total_vort_and_dil_iz* TOTAL_VORT_AND_DIL_IZ
+mv horiz_iz* HORIZ_IZ
+mv pert_vort_and_dil_iz* PERT_VORT_AND_DIL_IZ
+mv vort_eq_terms_iphi* VORT_EQ_TERMS_IPHI
+mv merid_iphi* MERID_IPHI
+mv phi_Reynolds* PHI_REYNOLDS_AVERAGES
+mv vort_eq_terms_iz* VORT_EQ_TERMS_IZ
+mv mpi_save* MPI_SAVE_FILES
+mv mv pert_curl_rho_u* PERT_CURL_RHO_U
+mv total_vort_and_dil_iphi* TOTAL_VORT_AND_DIL_IPHI
