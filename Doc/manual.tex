@@ -1,0 +1,217 @@
+\documentclass[11pt]{amsart}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\newcommand\bv{\begin{verbatim}}
+\newcommand\ever{\end{verbatim}}
+
+\title{Manual for Pade disk code}
+\author{Karim Shariff with routines borrowed from Alan Wray}
+
+\begin{document}
+\maketitle
+%\section{}
+%\subsection{}
+
+\begin{enumerate}
+\item The {\tt pade} code simulates protoplanetary disks in cylindrical coordinates
+$(r, z, \phi)$.  Currently the compressible inviscid/viscous hydrodynamic equations have been implemented.
+It is a finite-difference code and the compact 4th-order standard Pad\'e scheme is used for spatial differencing.  
+Pad\'e differentiation is known to have spectral-like resolving power.
+Numerical boundary schemes (for the non-periodic direction) are chosen that lead to collapsing sum derivatives to ensure conservation.
+
+The 4th order Runge-Kutta is
+used for time advancement.  
+A more accurate version of the FARGO technique (compared Masset's original implementation) for eliminating the time-step restriction imposed by Keplerian advection has been implemented.  Capturing of shocks that are not too strong is done using artificial bulk viscosity.
+
+The code can be compiled in serial or parallel (mpi) mode.
+
+\item Additional capabilities that would be desirable are (i) Shearing box. (b) Particles.  A strong desire on the part of others to use the code would motivate me to put these in.
+
+\item
+Parallelization is achieved using the pencil data structure in which one of the complete directions
+is in the processor memory.  We say that an array is in $z$ space, for example, when an array has all of $z$ and a portion in $\phi$ and $r$.  Of course, at a given time, each processor can have arrays in any of the three spaces.  Going from one space to another is done using transpose routines which I borrowed from Alan Wray's stellar box code.
+
+Most of the work is done in $z$ space (long part of brick along $z$ and short parts in $r$ and $\phi$.  A typical dimensioning of the flowfield array {\tt q} in $z$ space is:
+\begin{verbatim}
+real(8), dimension(sr:er, sphi:ephi, nz, ndof) :: q
+\end{verbatim}
+where {\tt sr} and {\tt er} are the starting and ending indices in $r$ that the processor has.  Similarly {\tt sphi} and {\tt ephi} are the starting and ending indices for the $\phi$ direction.  The processor has all of $z$.  {\tt ndof} is the number of ``degrees of freedom'', i.e., the number of flow variables which is currently 5.
+
+
+
+\item The distribution file should be named {\tt pade\_x.x.tar}, where {\tt x.x} is the version number.  To untar the distribution file type
+
+\begin{verbatim}
+tar -xvf pade_x.x.tar
+\end{verbatim}
+%
+This will create a sub-directory called {\tt PADE\_x.x}, where {\tt x.x} is the version number.  This directory
+contains:
+\begin{enumerate}
+\item All the {\tt .f90} source files, {\tt Makefile},
+and {\tt input\_file} which is the (namelist) input file you will use for specifying run
+parameters.  
+\item The directory {\tt PADE\_x.x} also contains a sub-directory called {\tt COMPILED\_MODULES}
+where {\tt .mod} files created by the fortran compiler will sit.
+\item The sub-directory {\tt DOC} which contains this manual.
+\item A simple unix command file {\tt clean\_run} which
+clears your run directory of any {\tt .dat}, {\tt .tec}, save, and restart files.
+\item A sample PBS script file {\tt pade.pbs}.
+\end{enumerate}
+
+\item To compile the code into a serial executable ({\tt pade\_mpi}) you will need a fortran 90 compiler.
+Currently the compiler options in the makefile are for gfortran and ifort.
+To compile the code into a parallel executable ({\tt pade\_mpi}) you will need,
+in addition, mpi.  OPENMPI and MPICH are open source offerings and are easily installed
+on your machine.  Make sure that you use the {\tt --enable\_fortran} and correct {\tt --prefix} option (for the location
+of the library) at the configure step of the MPI installation.
+
+\item The code uses an FFT to implement the corrected Fargo method for Keplerian advection.
+In the makefile you can either choose the Rogallo fft (which the code comes supplied with) or
+the FFTW library.  
+
+\item If you choose FFTW, you will need to download it from the web.
+I usually download FFTW in a sub-directory in my home directory, for example,
+\begin{verbatim}
+   ~/Applications/fftw-3.3.7
+\end{verbatim}
+Then to install FFTW type, for example,
+\begin{verbatim}
+./configure --enable-fortran --prefix /home5/kshariff/Applications/fftw-3.3.7
+make
+make install
+\end{verbatim}
+
+Note that you will need in {\tt Makefile} to point to the correct {\tt lib} and {\tt include} directories for FFTW.
+
+\item Currently, for simplicity of the coding, we do not allow the number of processors to
+be changed between restarts.  This can be changed in the future by copying the appropriate
+code from Alan Wray's solar code.
+
+\item To compile the code, edit {\tt Makefile} and make sure
+that near the top
+\begin{enumerate}
+\item The setting of the variables {\tt fortran} and {\tt mpi\_fortran} near
+the top correctly reflect the invocation of fortran90 and mpi fortran90 
+on your system.  
+\item The paths for the FFTW include and lib directories are properly set.
+\end{enumerate}
+
+Then type
+
+\begin{verbatim}
+make pade
+\end{verbatim}
+
+or
+
+\begin{verbatim}
+make mpi_pade
+\end{verbatim}
+%
+to create the serial and/or parallel versions of the executable, respectively.
+You can also compile the code in debug mode.  This will enable output into
+stdout and a run time check on array bounds being exceeded.  To do this, start
+with a clean source directory (if needed) and use {\tt mode = debug}:
+
+\begin{verbatim}
+make clean
+make pade mode=debug
+\end{verbatim}
+
+or
+
+\begin{verbatim}
+make clean
+make pade_mpi mode=debug
+\end{verbatim}
+
+Note: Debug mode incurs an overhead and should not be used for production
+runs.
+
+\item To run the code, create a run directory somewhere since lots of
+output files may be generated.  Copy \begin{verbatim}input_file\end{verbatim} into the directory.  
+In the input file you can choose a run type.  Currently the run types
+are:
+
+\begin{enumerate}
+\item Test of a vertically propagating acoustic wave ($z$-dependence only).
+\item Test of vertical hydrostatic equilibrium ($z$-dependence only).
+\item Test of homentropic solid body rotation ($r$-dependence only).
+\item Vertical shear instability.
+\item Vertically integrated disk ($r$ and $\phi$ dependence).
+\item Viscous Taylor-Couette flow which I used to test the viscous coding.
+\item Two vortices for the FARGO paper.
+\end{enumerate}
+%
+Make sure that the directory {\tt PADE\_x.x} is in your path.  Then invoke the 
+executable by typing
+
+\begin{verbatim}
+pade
+\end{verbatim}
+
+or (assuming you want 32 processors)
+
+\begin{verbatim}
+mpirun -np 32 mpi_pade
+\end{verbatim}
+%
+for the serial or parallel executables, respectively. 
+
+\item Before running in parallel you should ensure that your choice for the
+number of grid points and number of processors can be perfectly packed into pencils.  To do this
+run the code {\tt part\_tool} which stands for ``partition tool.''  To create the executable {\tt part\_tool}  type {\tt make part\_tool} in the {\tt TOOLS} directory.
+
+\item Most likely, the current run types will not suit your purpose.
+In this case you can set up/modify {\tt user\_application.f90} to suit
+your purpose and invoke it using {\tt run\_type = 0} in
+{\tt input\_file}.  You can also get further hints for setting-up a user application by looking at
+existing application subroutines such as
+%
+\begin{verbatim}
+app_vsi_3D.f90
+\end{verbatim}
+
+You will see that the basic steps in an application subroutine are the following.
+
+\begin{enumerate}
+\item Read some run parameters needed from the namelist file {\tt input\_file}.
+\item {\tt call initialize} with the appropriate arguments.
+In case of a restart, {\tt call initialize} will cause the restart file to be read.
+For a fresh start it will also generate the mesh.
+\item Assign the initial field in the q array (for fresh start).
+\item Set up a time stepping loop.  The main ingredients in this loop
+will be:
+\item {\tt call rk4}, the fourth-order time stepping subroutine.
+\item Call routines for plotting output at regular intervals.  You can
+invoke existing plotting output routines which can be found in
+{\tt plotting\_output.f90}.  Or you can write your own.
+
+\item {\tt call finalize}.  This will write a save file named {\tt save},
+and finalize mpi for an mpi run.
+
+\item Degree of freedom indices defined in {\tt module dof\_indices} are
+\begin{verbatim}
+integer, parameter :: irho = 1, rmom = 2, zmom = 3, amom = 4, ener = 5
+\end{verbatim}
+{\tt ener} is the internal energy $\rho c_v T$.  We use the internal energy instead of the total energy for a reason related to the FARGO method and explained in our FARGO paper.
+To use the above indices {\tt use dof\_indices} in your subroutine.
+\end{enumerate}
+
+%%%
+\item At the end of a run that completed successfully or the code itself aborted (rather than the system aborting the run), a file called {\tt return\_status.dat} is written.  This file contains only one line with a 0 (normal return) or 1 (abnormal return; refer to {\tt stdout} for the error message.
+
+
+This allows resubmitting PBS jobs.  
+
+\end{enumerate}
+
+\end{document}  
