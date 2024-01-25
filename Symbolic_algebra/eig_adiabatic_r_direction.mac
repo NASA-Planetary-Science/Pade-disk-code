@@ -1,0 +1,28 @@
+/* Maxima script.  November 26, 2021 */
+/* For the implementation of force-balanced non-reflective BC */
+/* Adiabatic case.  Radial direction. */
+/* See notes under Non-reflective BC tab */
+
+
+A : matrix([ur, rho,     0,  0,  0],
+            [0, ur,      0,  0,  1/rho],
+	    [0, 0,       ur, 0,  0],
+	    [0, 0,       0,  ur, 0],
+	    [0, rho*c^2, 0,  0,  ur]);
+
+Lambda : eigenvalues(A);
+
+S : matrix([1, 1, 1, 0, 0],
+           [-c/rho, c/rho, 0, 0, 0],
+	   [0, 0, 0, 1, 0],
+	   [0, 0, 0, 0, 1],
+	   [c^2, c^2, 0, 0, 0]);
+
+/* Check */
+Si : invert(S);
+
+check : ratsimp(Si . A . S);
+
+
+
+
