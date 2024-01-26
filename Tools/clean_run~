@@ -1,0 +1,1 @@
+\rm *.dat *.tec *.pro *.txt *.his restart mpi_restart save mpi_save* info.txt save*
