@@ -1,0 +1,137 @@
+\documentclass[11pt]{amsart}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\newcommand\bv{\begin{verbatim}}
+\newcommand\ever{\end{verbatim}}
+
+\title{Instructions for running {\sc Pade}}
+\author{Karim Shariff}
+\address{NASA Ames Research Center}
+\email{Karim.Shariff@nasa.gov}
+
+\begin{document}
+\maketitle
+
+\section{Basic description}
+The {\tt pade} code simulates protoplanetary disks in cylindrical coordinates
+$(r, z, \phi)$.  Currently the compressible inviscid/viscous hydrodynamic equations have been implemented.
+It is a finite-difference code and the compact 4th-order standard Pad\'e scheme is used for spatial differencing.  
+Pad\'e differentiation is known to have spectral-like resolving power.
+Numerical boundary schemes (for the non-periodic direction) are chosen so as to provide discrete conservation.
+
+The 4th order Runge-Kutta is used for time advancement.  
+A more accurate version of the FARGO technique (compared Masset's original implementation) for eliminating the time-step restriction imposed by Keplerian advection has been implemented.  Capturing of shocks that are not too strong is done using artificial bulk viscosity.
+
+There are several application subroutines and test case subroutines that come with the code.  You can list them by going into the {\tt /Src} directory and typing {\tt ls -1 app*} giving
+
+\begin{verbatim}
+app_euler1d_tests.f90
+app_homentropic_solid_body_rotation_test.f90
+app_hydrostatic_test.f90
+app_pade_diff_test.f90
+app_single_vortex_fargo_test.f90
+app_taylor_couette.f90
+app_user.f90
+app_vortex_pair.f90
+app_vsi_3D.f90
+\end{verbatim}
+
+The subroutine {\tt app\_euler1d\_tests.f90} runs in serial mode or with mpi and a single processor.  The subroutine {\tt app\_user.f90} is a placeholder for a user to write his/her own application.  It is currently blank, however, in a future release it
+we will populate it with elements that every application will typically have.
+
+\section{Setting up the makefile}
+
+\begin{enumerate}
+\item Begin by editing {\tt /Src/Makefile}.  It begins with a section that must be set-up by the user.  The first variable that needs to be set is {\tt parallel}.  Set it equal to {\tt yes} for an mpi code or {\tt no} for a serial code.
+\item You can set the rest of the variables equal to {\tt no}.  However, read their descriptions in case you need them for debugging in the future.
+\item The next thing you need to do is specify how to how to invoke your fortran90 compiler and your mpi fortran.  You can do this for different hosts you use as indicated in the conditional statements. 
+\item The code uses an FFT to implement the corrected Fargo method for Keplerian advection.
+In the makefile you can either set the variable {\tt fft} equal to {\tt fftw} to use the FFTW library, or set {\tt fft = rogallo} if you are too lazy to install the FFTW library.  The Rogallo fft comes supplied with the code.
+For production runs I recommend  that you use FFTW since I have I use the Rogallo FFT only very early. on during code development and cannot guarantee its correctness.  If you set {\tt fft = fftw} then you will need to specify {\tt fftw\_include\_path} and {\tt fftw-library-path}.
+\item That's it.
+\end{enumerate}
+
+\section{Compiling the code}
+
+\begin{enumerate}
+\item The executable is called {\tt pade} and is created in {\tt /Src}  by issuing {\tt make pade} in {\tt /Src}.
+\item For future use, note that there are two optional command line options you can specify to {\tt make} for debugging purposes.  These options are {\tt print} and {\tt checks}.  If you type {\tt make pade print=yes}, then the code will write extremely verbose output to stdout about what it is doing.  If you type {\tt make pade checks=yes}. then compiler run-time checks will be enabled.
+\end{enumerate}
+
+\section{Running the shock-tube test case}
+
+If you have successfully compiled the code, go to the directory {\tt /Test\_cases/Shock\_tube}.  There you will find {\tt input\_file}, the input file for this test case.  If {\tt /Src} is in your path, then you can simply type {\tt pade} to run the test case serially or {\tt mpirun -np 1 pade} to run it with one cpu.  At the end you will see output files for the pressure, density, and velocity at $t = 0, 0.15, 0.45$, and $0.60$, for instance {\tt rho\_t\_0000.6000\_step\_001026.dat} for the density at $t = 0.60$.  Each file has three columns, $x$, the value of the field variable, and the exact solution.  You can plot the variable using your favorite $xy$ plotter.  If you want to clean up the directory, leaving only {\tt input\_file}, you can type {\tt clean\_run} which executes a shell script in {\tt Shell\_scripts} provided it is in your path. 
+
+\section{Running the axisymmetric VSI (vertical shear instability) test case}
+
+\begin{itemize}
+\item We will run this test case with multiple processors so make sure that you set {\tt parallel = yes} in {/Src/Makefile} if you have previously set {\tt parallel = no}.  If you need to recompile the code in parallel mode, go to {\tt /Scr} and type
+\begin{verbatim}
+make clean
+make pade
+\end{verbatim}
+\item The resolution for this run is $360 \times 256 \times 1$ ($n_r \times n_z \times n_\phi$) and let us plan to use 4 cpus.  We know that the grid will evenly divide into 4 cpus but to make sure we can run the fortran90 code {\tt /Tools/partition\_tool}.  To do this, go into {\tt /Tools} and type {\tt make partition\_tool}.  The {\tt Makefile} in the {\tt /Tools} directory invokes {\tt gfortran} so you may need to edit the Makefile in case you are using a different fortran90 compiler.
+\item Assuming that {\tt make partition\_tool} we can run it as follows:
+\begin{verbatim}
+>> partition_tool
+ enter nr, nz, nphi, num_nodes--->360 256 1 4
+  ***** Found a solution *****
+  ng1 =            4  mr =           90
+  ng2 =            1  mphi =            1
+  mz_r =           64  mz_phi =          256
+  \end{verbatim}
+The output tells us that the processor layout will be $4 \times 1$ ({\tt ng1} $\times$ {\tt ng2}), i.e., the group size along one direction is 4 and along the other is 1.
+\item To run the test case go to {\tt /Test\_cases/Axisymmetric\_VSI} and type
+\begin{verbatim}
+mpirun -np 4 pade
+\end{verbatim}
+The code should run 10,000 steps up to $t = 10.96$.
+\item Let us run it for another 10,000 steps.  To do this go into {\tt input\_file} and set {\tt restart = .true.} and {\tt perturb = .false.}.  Next, we want to rename (or copy) the last "save" file into a restart file:
+\begin{verbatim}
+cp mpi_save_version2_0010000 mpi_restart_version2
+\end{verbatim}
+For fun we will change the number of processors to 8.  You are allowed to change the number of processors provided your choice results in a valid partitioning.
+\begin{verbatim}
+mpirun -np 8 pade
+\end{verbatim}
+\item The code should now have run up to step 20,000 and $t = 21.05$.  At the end of a run that completed successfully or the code itself aborted (rather than the system aborting the run), a file called {\tt return\_status.dat} is written.  This file contains only one line with a 0 (normal return) or 1 (abnormal return; refer to {\tt stdout} for the error message. This allows resubmitting PBS jobs.  
+\end{itemize}
+
+\section{Writing your own application subroutine}
+
+The source file {\tt app\_user.f90} is a place holder for you to write your own application.  Currently it is empty, however, in the future releases we plan to populate with the main elements that any application must have.  For now you can start with a current application subroutines (whose source file name is prefixed with {\tt app\_}) that is closest to what you would like to accomplish.
+
+You will see that the basic steps in an application subroutine are the following.
+
+\begin{enumerate}
+\item Read some run parameters needed from the namelist file {\tt input\_file}.
+\item {\tt call initialize} with the appropriate arguments.
+In case of a restart, {\tt call initialize} will cause the restart file to be read.
+For a fresh start it will also generate the mesh.
+\item Assign the initial field in the q array (for fresh start).
+\item Set up a time stepping loop.  The main ingredients in this loop
+will be:
+\item {\tt call rk4}, the fourth-order time stepping subroutine.
+\item Call routines for plotting output at regular intervals.  You can
+invoke existing plotting output routines which can be found in
+{\tt plotting\_output.f90}.  Or you can write your own.
+
+\item {\tt call finalize}.  This will write a save file named {\tt save},
+and finalize mpi for an mpi run.
+
+\item Degree of freedom indices defined in {\tt module dof\_indices} are
+\begin{verbatim}
+integer, parameter :: irho = 1, rmom = 2, zmom = 3, amom = 4, ener = 5
+\end{verbatim}
+{\tt ener} is the internal energy $\rho c_v T$.  We use the internal energy instead of the total energy for a reason related to the FARGO method and explained in our FARGO paper.
+To use the above indices {\tt use dof\_indices} in your application subroutine.
+\end{enumerate}
+
+\end{document}  

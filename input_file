@@ -1,0 +1,325 @@
+!-----------------------------------------------------------------------
+&run_type
+! i_run_type = 0 : User application.
+!            = 1 : Euler 1D tests in "z".
+!            = 2 : Test vertical hydrostatic balance for a thin disk.
+!                  z-direction only.  Can impose acoustic pulse.
+!            = 3 : Test homentropic solid-body rotation. r-direction
+!                  only.  Parameters set internally.
+!            = 4 : Axisymmetric vertical shear instability (vsi for short).
+!            = 5 : Single vortex Fargo test.
+!            = 6 : 3D vertical shear instability.
+!            = 7 : Strong vortex (Removed)
+!            = 8 : Two vortices (Removed)
+!            = 9 : Vortex pair
+!            = 10: Taylor-Couette flow
+i_run_type = 6
+/
+!-----------------------------------------------------------------------
+! Input for i_run_type = 0, i.e., for input to
+! subroutine user_application.  See user_application.f90 for the template
+! which you may modify.
+&user_input
+/
+!-----------------------------------------------------------------------
+! Input for i_run_type = 1: Euler 1D tests.
+! For the code see app_euler1d_tests.f90
+&euler1d_tests_input
+! Problem type = 1: Acoustic pulse; 2: Shock-tube
+problem_type = 2,
+!
+nz = 512,
+! Number of output steps:
+n_output_steps = 4
+! Time between output steps:
+dt_output = 0.15d0
+cfl = 1.0d0,
+!
+! These two parameters apply for the acoustic pulse test case only: 
+isothermal = .false.,
+periodic_z = .true.,
+!
+! These parameters are for the shock-tube test case only:
+apply_pade_filter = .true.,
+eps_filter = 0.05d0,
+apply_artificial_pressure = .true.,
+! Coefficient for the artificial pressure:
+C_ap = 2.d0
+/
+!-----------------------------------------------------------------------
+! Input for i_run_type = 2: Hydrostatic balance test.
+! See app_hydrostatic_test.f90 for the code.  An acoustic wave can be
+! superimposed.
+&hydrostatic_test_input
+nz = 256,
+cfl = 1.0d0,
+nsteps = 1000,
+profiles_interval = 100,
+apply_pade_filter = .false.,
+eps_or_tau = 'eps',
+eps_filter = 0.01d0,
+tau_filter = 0.25d0,
+! Parameters of superimposed acoustic pulse:
+eps = 0.01d0,
+sigma = 0.20d0,
+z0 = 0.0d0
+! This sets the min and max of the domain in terms of the scale height:
+zmax_over_H = 3.0d0,
+apply_artificial_pressure = .false.,
+C_ap = 1.0d0,
+isothermal = .false.
+/
+!-----------------------------------------------------------------------
+! Input for i_run_type = 4: Axisymmetric vertical shear instability
+! See app_axi_vertical_shear_instability.f90 for the code.
+&axi_vsi_input
+restart = .false.
+nr = 1024,
+nz = 512,
+cfl = 0.5d0,
+nsteps = 20,
+tecplot_interval  = 500,
+profiles_interval = 1000000,
+! Interval for intermediate writing of a file called "save", with 
+! the same format as a restart file.
+save_interval = 100000,
+perturb = .true.,
+zmax_over_H0 = 3,
+! This will determine the domain size:
+n_waves_in_r = 12,
+eps_smooth = 0.15d0
+/
+!-----------------------------------------------------------------------
+! Input for i_run_type = 5: Single vortex Fargo test. 
+&vid_input
+restart = .false.,
+nr = 1024,
+nphi = 1024,
+!nr = 100,
+!nphi = 10,
+cfl = 1.0d0,
+!nsteps = 1000,
+nsteps = 2000,
+tecplot_interval = 100,
+tau_filter = 0.05d0,
+apply_fargo_trick = .false.,
+integer_shifts = .false.,
+apply_fargo_correction = .false.,
+use_supplied_dt = .false.,
+dt = 0.00034d0,
+isothermal = .true.,
+/
+!-----------------------------------------------------------------------
+! Input for i_run_type = 6: 3D vertical shear instability
+! See app_vsi_3D.f90 for the code.
+&vsi_3D_input
+restart = .false.
+! 1 : Old style restart file with basic state
+! 2 : New style restart file without basic state
+file_version = 2
+perturb = .true.
+isothermal = .true.
+nr = 358
+nz = 256
+nphi = 512
+phi_max_over_pi = 2.d0
+cfl = 1.5d0
+dt_min = 1.d-8
+nsteps = 30000
+tecplot_interval  = 500
+!
+output_profiles   = .false.
+profiles_interval = 20000000
+!
+! Output Reynolds phi averages from which Favre phi-time averaged means and stresses
+! can be computed using TOOLS/phi_time_Favre_averages.f90.  This is valid only in a stationary
+! state.
+output_phi_Reynolds_averages = .false.
+time_interval_for_phi_Reynolds_averages = 0.5d0
+
+fluctuation_ke_interval = 200
+! Interval for intermediate writing of a file called "save_xxxx" or "mpi_save_xxxx", 
+! with the same format as a restart file.
+save_interval     = 270
+wavy_perturbation = .true.
+zmax_over_H0      = 3.0d0
+
+use_rsize_for_domain = .true.
+! If the above is .true., this will determine the domain size:
+rsize_over_H0        = 7.d0
+rmin_over_H0         = 6.5d0
+! Otherwise this will determine the domain size:
+n_waves_in_r         = 10
+!
+use_Manger_p = .false.
+!
+apply_newtonian_cooling = .false.
+tau_cooling_over_t_Kepler_at_mid_radius = 0.d0
+!
+apply_pade_filter = .true.
+eps_or_tau = 'eps'
+eps_filter = 0.125d0
+tau_filter = 0.05d0
+!
+apply_artificial_pressure = .true.
+C_ap = 1.3d0
+!
+apply_viscosity = .false.
+! Viscosity types are: laminar = 1, Moin_etal = 2, Vreman = 3, ddsv = 4, Moin_ddsv = 5, &
+!                         Vreman_ddsv = 6
+viscosity_type = 2
+C_DDSV = 1.d0
+
+! Boolean for naming files using the step number rather than the time:
+name_using_step = .true.
+
+! Boundary condition types are:
+! null = 0, non_reflective = 1, zero_normal_momentum = 2,
+! Cassen_Moosman_BC = 3, zero_normal_momentum_if_subsonic = 4,
+!     outflow = 5, periodic = 6, viscous_wall = 7, zero_shear_stress = 8
+rmin_BC = 2
+rmax_BC = 2
+zmin_BC = 2
+zmax_BC = 2
+! This flag is for a non-reflective BC.
+ibalanced = 1
+
+apply_fargo_trick      = .true.
+! This is needed only if the above is .true.:
+apply_fargo_correction = .true.
+
+! Sponge paramaters:
+!
+! Valid sponge_types
+! 'bsd+nul': Sponge when basic-state density is < rho1. rho2 marks the end of the
+!            transition region where the sponge ends.
+! 'drw+nul': sponge when the distance from the nearest radial boundary < d1.  d2 marks
+!            the end of the transition region.
+! 'daw+nul': sponge when the distance from any boundary is < d1
+! 'bsd+drm': This combined bsd and distance from the rmin boundary.
+! 'drw+bsd': Combines the "distance to the nearest radial boundary" and
+!                         "basic state density criteria"
+apply_sponge = .true.
+sponge_type = 'daw+nul'
+rho1 = 0.008d0
+rho2 = 0.01d0
+!d1 = 0.25d0
+!d2 = 0.50d0
+d1 = 0.4d0
+d2 = 0.5d0
+n_decay_steps = 20
+tau_decay = 0.d0
+/
+!-----------------------------------------------------------------------
+! Input for i_run_type = 7: Strong vortex
+! See app_strong_vortex.f90 for the application subroutine.
+&sv_input
+restart = .false.,
+nr = 512,
+nphi = 512,
+!nr = 100,
+!nphi = 10,
+cfl = 1.0d0,
+nsteps = 8000,
+!nsteps = 100,
+tecplot_interval = 400,
+tau_filter = 0.01d0,
+apply_fargo_trick = .false.,
+integer_shifts = .false.,
+apply_fargo_correction = .false.,
+use_supplied_dt = .true.,
+dt = 4.9063d-5,
+isothermal = .true.,
+apply_artificial_pressure = .true.,
+C_ap = 1.0d0
+/
+!-----------------------------------------------------------------------
+! Input for i_run_type = 8: Two vortices
+! See app_two_vortices.f90 for the application subroutine.
+&tv_input
+restart = .false.,
+nr = 512,
+nphi = 512,
+!nr = 100,
+!nphi = 10,
+cfl = 1.0d0,
+nsteps = 4000,
+!nsteps = 100,
+tecplot_interval = 200,
+tau_filter = 0.01d0,
+apply_fargo_trick = .false.,
+integer_shifts = .false.,
+apply_fargo_correction = .false.,
+use_supplied_dt = .false.,
+dt = 4.9063d-5,
+isothermal = .true.,
+apply_artificial_pressure = .false.,
+C_ap = 1.0d0
+/
+!-----------------------------------------------------------------------
+! Input for i_run_type = 9: Vortex Pair
+! See app_vortex_pair.f90 for the application subroutine.
+&vp_input
+restart = .false.,
+nr = 512,
+nphi = 512,
+!nr = 100,
+!nphi = 10,
+cfl = 1.0d0,
+nsteps = 4000,
+!nsteps = 100,
+tecplot_interval = 200,
+tau_filter = 0.01d0,
+apply_fargo_trick = .false.,
+integer_shifts = .false.,
+apply_fargo_correction = .false.,
+use_supplied_dt = .false.,
+dt = 4.9063d-5,
+isothermal = .true.,
+apply_artificial_pressure = .false.,
+C_ap = 1.0d0,
+/
+!-----------------------------------------------------------------------
+! Input for i_run_type = 10: Taylor-Couette flow
+
+! See app_taylor_couette.f90 for the application subroutine.
+&tc_input
+
+! Run type and sub-type:
+! 1: Marcus axisymmetric Taylor-Couette
+! 2: Dong (2007), L_z/d = 2*pi
+! 3: Axial motion of the cylinders.
+! 4: Meyer-Spasche and Keller
+! 5: Moser
+!    1: Meyer
+!    2: Donnelly & Simon narrow gap (moser_DS_narrow)
+!    3: Donnelly & Simon wide   gap (moser_DS_wide  )
+! 7: Dong (2008) counter-rotating, Lz/d = 2*pi, eta = 0.5
+! 8: Laminar with the same sub-types as Moser.
+itype = 7
+isubtype = 3
+! Reynolds number for Dong's (2007) or (2008) set-up (itype = 2 or 7): 
+Re_Dong = 500.d0
+!
+restart = .true.
+file_verision = 2
+perturb = .false..
+!
+nr = 32
+nz = 32
+nphi = 1
+!
+cfl = 1.5d0
+nsteps = 30000
+! Also interval for Reynolds averages:
+tecplot_interval  = 30000
+profiles_interval = 10
+save_interval = 10000
+history_interval = 50
+!
+apply_pade_filter = .true. 
+eps_or_tau = 'eps'
+eps_filter = 0.02d0
+tau_filter = 0.d0
+/
+!-----------------------------------------------------------------------
