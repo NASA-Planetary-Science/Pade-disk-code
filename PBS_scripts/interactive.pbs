@@ -1,0 +1,9 @@
+#!/bin/tcsh
+#PBS -I -q normal
+#PBS -l select=1:ncpus=8:model=ivy -lwalltime=0:30:00
+#
+
+mpiexec -np 8 pade
+
+
+
