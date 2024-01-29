@@ -24,7 +24,6 @@ use gravity_types
 #endif
 implicit none
 
-external rhs ! name of rhs subroutine passed to rk4.
 logical :: restart
 integer :: istep_of_restart_file, file_version
 real(xp) :: t_of_restart_file
@@ -704,7 +703,7 @@ call history_write_rms(t, output_profiles)
 ! Assume normal return.  Will be changed if we hit a snag:
 istatus = 0
 do istep = istep0 + 1, istep0 + nsteps
-   call rk4(rhs, q, cfl, t, dt, use_supplied_dt, unphysical_flag, iphi_bad, &
+   call rk4(q, cfl, t, dt, use_supplied_dt, unphysical_flag, iphi_bad, &
                        hit_target, t_target, target_met)
    call output_conservation_diagnostics(t, q)
    if (hit_target .and. target_met) then

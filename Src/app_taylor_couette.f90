@@ -38,8 +38,6 @@ use basic_state
 #endif
 implicit none
 
-! Function called:
-external rhs
 real(8) :: tc_density
 
 logical :: restart
@@ -608,7 +606,7 @@ call laminar_profile_output
 do istep = istep0 + 1, istep0 + nsteps   
    !print *, ' Before rk4 istep = ', istep
    !read(5, *)
-   call rk4(rhs, q, cfl, t, dt, use_supplied_dt, unphysical, iphi_bad, &
+   call rk4(q, cfl, t, dt, use_supplied_dt, unphysical, iphi_bad, &
                   hit_target, t_target, target_met)
    !print *, ' After rk4 istep = ', istep
    !read(5, *)

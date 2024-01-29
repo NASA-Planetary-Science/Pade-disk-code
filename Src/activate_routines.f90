@@ -326,6 +326,165 @@ end subroutine activate_pade_filter
 
 !----------------------------------------------------------------------------------85
 
+subroutine activate_viscosity(apply_viscosity_arg, viscosity_type_arg, isothermal_arg, &
+     nu_molecular_arg, nu_b_molecular_arg, Pr_molecular_arg, gamma_arg, C_DDSV_arg, C_Smag_arg)
+
+! This routine activates one of four viscosity (and conductivity) treatments and should
+! be called by the user's application subroutine.
+
+! Set apply_viscosity = .true. if you want one of the four viscosities and conductivities
+! or one of the two mass diffusivites.
+
+! viscosity_type_arg : Choose one of the following integers (defined in module viscosity_types):
+!                      Molecular = 1  : Molecular
+!                      Moin_etal = 2  : Non-dynamic version of Moin etal sgs model
+!                      Vreman    = 3  : Vreman sgs model + same compressibility additions as Moin et al
+!                      ddsv      = 4  : Dilatation-dependent shear viscosity
+!                      Moin_ddsv = 5  : 2 and 4.
+
+! isothermal_arg : .true. or .false.  Tells us if we should allocate storage for thermal stuff.
+
+! nu_molecular_arg   : Molecular kinematic shear viscosity
+! nu_b_molecular_arg : Molecular kinematic bulk viscosity
+! Pr_molecular_arg : Molecular Prandtl number
+! gamma_arg      : cp/cv, ratio of specific heats.  This is needed to go from viscosity to
+!                  heat conductivity for the molecular case.
+! C_DDSV_arg : coefficient for the dilatation dependent shear viscosity used to capture shear
+! layers caused by shocks in more than 1 dimension.  Currently I don't think this is a useful
+! option.  Nevertheless I have left it in and may remove it in the future.
+
+use grid
+use viscous
+use viscosity_types
+use total_allocated_words, only: n_words_allocated
+use partition_data
+use dof_indices
+use logical_units
+implicit none
+logical      :: apply_viscosity_arg
+integer      :: viscosity_type_arg
+logical      :: isothermal_arg
+real(8)      :: nu_molecular_arg ! Molecular kinematic shear viscosity (constant).
+real(8)      :: nu_b_molecular_arg ! Molecular kinematic bulk viscosity (constant).
+real(8)      :: Pr_molecular_arg ! Molecular Prandtl number (constant).
+real(8)      :: gamma_arg
+real(8)      :: C_DDSV_arg
+real(8)      :: C_Smag_arg
+
+! Local:
+integer :: ir, iz
+
+#ifdef debug_print
+if (my_node .eq. 0) print *, ' node 0: activate_viscosity: first executable'
+#endif
+
+apply_viscosity = apply_viscosity_arg
+viscosity_type  = viscosity_type_arg
+nu_molecular    = nu_molecular_arg
+nu_b_molecular  = nu_b_molecular_arg
+Pr_molecular    = Pr_molecular_arg
+C_DDSV          = C_DDSV_arg
+C_Smag          = C_Smag_arg
+
+if (my_node .eq. 0) then
+   print *, ' node 0: subroutine activate_viscosity'
+   print *, '    apply_viscosity = ', apply_viscosity
+   print *, '    viscosity_type  = ', viscosity_type
+   print *, '    nu_molecular    = ', nu_molecular
+   print *, '    nu_b_molecular  = ', nu_b_molecular   
+   print *, '    Pr_molecular    = ', Pr_molecular
+   print *, '    C_DDSV          = ', C_DDSV
+   print *, '    C_Smag          = ', C_Smag
+end if
+
+! See notes of Nov. 30, 2018.  We need these to calculate k/cv.
+gamma_over_Pr_molecular = gamma_arg / Pr_molecular
+gamma_over_Pr_t         = gamma_arg / Pr_molecular
+
+#ifdef debug_print
+if (my_node .eq. 0) then
+   print *, ' node 0:'
+   print *, ' viscosity_type = ', viscosity_type
+   print *, ' C_DDSV         = ', C_DDSV
+end if
+#endif
+
+! Check that viscosity_type is one of the allowable types:
+if (my_node .eq. 0) then
+   if (viscosity_type .eq. molecular) then
+      print *, ' viscosity type = molecular'
+   else if (viscosity_type .eq. Moin_etal) then
+      print *, ' viscosity type = Moin et al LES model (non-dynamic)'
+   else if (viscosity_type .eq. Vreman) then
+      print *, ' viscosity type = Vreman LES model + compressibility additions'
+   else if (viscosity_type .eq. ddsv) then
+      print *, ' viscosity type = Dilatation-dependent shear viscosity'
+   else if (viscosity_type .eq. Moin_ddsv) then
+      print *, ' viscosity type = Moin et al + Dilatation-dependent shear viscosity'
+   else if (viscosity_type .eq. Vreman_ddsv) then
+      print *, ' viscosity type = Vreman + Dilatation-dependent shear viscosity'
+   else
+      print *, ' Unrecognized viscosity_type = ', viscosity_type
+      call terminate_with_no_save(1)
+   end if
+end if
+
+call allocate_viscous_quantities(isothermal_arg)
+
+#ifdef debug_print
+if (my_node .eq. 0) print *, ' node 0: After activate_viscosity, Mb allocated = ', float(8*n_words_allocated)/1.d6
+#endif
+
+! Delta vector for Vreman model:
+if ((viscosity_type .eq. Vreman) .or. (Viscosity_type .eq. Vreman_ddsv)) then
+   allocate(Delta_vector(3, sr:er, nz)) ! This is in module grid
+   if ((nz_actual .ne. 1) .and. (nr .ne. 1) .and. (nphi .ne. 1)) then
+   ! 3D case:
+      do iz = 1, nz
+         do ir = sr, er
+            Delta_vector(r_comp, ir, iz) = dr(ir)
+            Delta_vector(z_comp, ir, iz) = dz(iz)
+            Delta_vector(p_comp, ir, iz) = r_dphi(ir)
+         end do
+      end do
+   else if ((nz_actual .eq. 1) .and. (nr .ne. 1) .and. (nphi .ne. 1)) then
+      ! Planar case (vertically integrated, r, phi):   This needs to be redone.
+      do iz = 1, nz
+         do ir = sr, er
+            Delta_vector(r_comp, ir, iz) = dr(ir)
+            Delta_vector(z_comp, ir, iz) = 0.0d0
+            Delta_vector(p_comp, ir, iz) = r_dphi(ir)         
+         end do
+      end do
+   else if ((nz_actual .ne. 1) .and. (nr .ne. 1) .and. (nphi .eq. 1)) then
+      ! Axisymmetric case (z, r):
+      do iz = 1, nz
+         do ir = sr, er
+            Delta_vector(r_comp, ir, iz) = dr(ir)
+            Delta_vector(z_comp, ir, iz) = dz(iz)
+            Delta_vector(p_comp, ir, iz) = 0.0d0         
+         end do
+      end do
+   else if ((nz_actual .ne. 1) .and. (nr .eq. 1) .and. (nphi .eq. 1)) then
+      ! Vertical only case:
+      do iz = 1, nz
+         do ir = sr, er
+            Delta_vector(r_comp, ir, iz) = 0.0d0
+            Delta_vector(z_comp, ir, iz) = dz(iz)
+            Delta_vector(p_comp, ir, iz) = 0.0d0         
+         end do
+      end do
+   else
+      print *, ' You are running a new case type for which you need to add coding for'
+      print *, ' the minimum grid size in subroutine make_grid'
+      call terminate_with_no_save(1)
+   end if
+end if
+
+end subroutine activate_viscosity
+
+!----------------------------------------------------------------------------------85
+
 end module activate_routines
 
 !----------------------------------------------------------------------------------85

@@ -26,7 +26,6 @@ use dof_indices
 implicit none
 
 ! Local:
-external rhs
 real(8) :: t, cfl, dt
 integer :: istep, nsteps, output_interval
 
@@ -111,7 +110,7 @@ hit_target = .false.
 t_target   = dummy
 do istep = 1, nsteps
    ! call euler (q, cfl, t)
-   call rk4(rhs, q, cfl, t, dt, use_supplied_dt, unphysical, iphi_bad, &
+   call rk4(q, cfl, t, dt, use_supplied_dt, unphysical, iphi_bad, &
                        hit_target, t_target, target_met)
    print *, ' finished istep = ', istep, ' t = ', t
 

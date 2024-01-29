@@ -11,7 +11,7 @@ parallel = yes
 # and Aitken Cascade Lake.  It turns on the Advanced Vector Extensions optimizations.
 AVX512 = no
 
-# Turn on gdb debugger information for gfortran.  This will only if you compile with
+# Turn on gdb debugger information for gfortran.  This will only work if you compile with
 # checks = yes, i.e., you type "make pade checks = yes"
 GDB_INFO = no
 

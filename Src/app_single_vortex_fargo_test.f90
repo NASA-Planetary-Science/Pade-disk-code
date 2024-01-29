@@ -24,7 +24,6 @@ use basic_state
 #endif
 implicit none
 
-external rhs
 real(8) :: pi   
 
 ! For restart:
@@ -302,7 +301,7 @@ if (my_node .eq. 0) print *, ' node 0: Mb allocated = ', float(8*n_words_allocat
 
 apply_pade_filter = .true.
 do istep = istep1, istep1 + nsteps - 1
-   call rk4(rhs, q, cfl, t, dt, use_supplied_dt, unphysical, iphi_bad, &
+   call rk4(q, cfl, t, dt, use_supplied_dt, unphysical, iphi_bad, &
                        hit_target, t_target, target_met)
    if (unphysical) call terminate_with_save(1, istep, t)   
    ! call euler(q, cfl, t, dt, use_supplied_dt)

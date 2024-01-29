@@ -21,7 +21,6 @@ use basic_state
    use mpi
 #endif
 implicit none
-external rhs
 character(8) :: vortex_type   
    
 real(8) :: pi
@@ -334,7 +333,7 @@ call sanity_check
 if (my_node .eq. 0) print *, ' node 0: Mb allocated = ', float(8*n_words_allocated)/1.d6
 
 do istep = istep1, istep1 + nsteps - 1
-   call rk4(rhs, q, cfl, t, dt, use_supplied_dt, unphysical, iphi_bad, &
+   call rk4(q, cfl, t, dt, use_supplied_dt, unphysical, iphi_bad, &
                   hit_target, t_target, target_met)
    ! call euler(q, cfl, t, dt, use_supplied_dt)
    

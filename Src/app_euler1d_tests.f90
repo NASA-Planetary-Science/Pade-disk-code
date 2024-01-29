@@ -47,7 +47,6 @@ use artificial_pressure_module
 implicit none
 
 ! Locals:
-external rhs
 real(8) :: t, cfl, dt, dt_output, t_target
 integer :: n_output_steps, i_output_step, istep
 logical :: hit_target, target_met
@@ -245,7 +244,7 @@ t_target   = t + dt_output
 target_met = .false.
 do i_output_step = 1, n_output_steps
    do while (.not. target_met)
-      call rk4(rhs, q, cfl, t, dt, use_supplied_dt, unphysical, iphi_bad, &
+      call rk4(q, cfl, t, dt, use_supplied_dt, unphysical, iphi_bad, &
            hit_target, t_target, target_met)
       if (unphysical) call terminate_with_no_save(1)   
       istep = istep + 1

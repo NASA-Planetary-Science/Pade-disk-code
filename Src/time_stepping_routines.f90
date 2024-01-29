@@ -1,6 +1,6 @@
 !----------------------------------------------------------------------------------85
 
-subroutine rk4(rhs, q, cfl, t, dt, use_supplied_dt, unphysical, iphi_bad, &
+subroutine rk4(q, cfl, t, dt, use_supplied_dt, unphysical, iphi_bad, &
                hit_target, t_target, target_met)
 
 ! Performs one step of RK4 as given in Abramowitz and Stegun,
@@ -246,73 +246,6 @@ end if
 #endif   
 
 end subroutine rk4
-
-!----------------------------------------------------------------------------------85
-
-subroutine euler (q, cfl, t, dt, use_supplied_dt)
-
-! Note that the Fargo extra operator never needs to be applied for the Euler shcheme.
-
-use grid
-use partition_data
-use rk4_arrays
-use fargo_or_plotting_shift
-use cpu_timing_module
-use fargo_or_plotting_shift
-use math_constants
-use boundary_condition_data
-! So I can call enforce_BC
-use boundary_condition_routines
-implicit none
-
-! Arguments:
-real(8), intent(inout), dimension(sr:er, sphi:ephi, nz, ndof) :: q
-real(8) :: cfl, t, dt
-logical :: use_supplied_dt
-
-! Locals:
-logical :: first_substep
-real(8) :: t0, lambda_max, lambda_max_extra_operator
-
-! For timing:
-integer :: start_count_for_step, end_count_for_step, clock_count_rate
-real(8) :: cpu_for_this_step
-
-call system_clock (count = start_count_for_step)
-
-t0 = t
-first_substep = .true.
-call rhs(q, qdot, first_substep, t, t0, lambda_max, lambda_max_extra_operator)
-
-! Calculate dt or cfl given dt:
-if (use_supplied_dt) then
-   ! The pi factor is for spectral schemes and is a good upper bound.         
-   cfl = pi*lambda_max*dt  
-   print *, ' Given dt = ', dt, ' implies cfl = ', cfl      
-else
-   dt = cfl/pi/lambda_max
-   print *, ' Given cfl = ', cfl, ' implies dt = ', dt
-end if
-
-! Note: We will never use uphi_subtract for the Euler scheme, since the
-! the extra operator is non-zero only after the first sub-step.
-call get_fargo_shifts_and_uphi_fargo_subtract(t, dt)
-
-q = q + dt*qdot
-if (apply_fargo_this_step) then
-   call apply_fargo_shifts(q)
-end if
-call enforce_BC(q)
-
-t = t + dt
-
-call system_clock (count = end_count_for_step)
-call system_clock(count_rate = clock_count_rate)
-cpu_for_this_step = (end_count_for_step - start_count_for_step) / real(clock_count_rate, 8)
-total_cpu_for_stepping = total_cpu_for_stepping + cpu_for_this_step
-print *, ' cpu time for this step = ', cpu_for_this_step
-
-end subroutine euler
 
 !----------------------------------------------------------------------------------85
 

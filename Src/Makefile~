@@ -43,8 +43,8 @@ endif
 # In the next line, select the fft routine to be used by the corrected FARGO method.
 # The two choices are fftw or rogallo.  For fftw you need to specify the include paths
 # below for the fftw library.  The rogallo fft comes with the pade code(see rogallo.f90).
-fft = rogallo
-#fft = fftw
+#fft = rogallo
+fft = fftw
 
 # Set this for your situation (needed only if you chose fftw above).
 ifeq ($(fft),fftw)
