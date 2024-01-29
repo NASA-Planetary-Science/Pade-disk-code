@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=latex 2023.2.1)  25 JAN 2024 17:32
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=latex 2023.2.1)  26 JAN 2024 22:35
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -261,20 +261,32 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-[1] [2] [3]
-Overfull \hbox (8.87022pt too wide) in paragraph at lines 132--132
+[1]
+Overfull \hbox (8.51718pt too wide) in paragraph at lines 86--86
+ []   \OT1/cmtt/m/n/10.95 if (my_node .eq. 0) print *, ' node 0: Sample debuggi
+ng output'[] 
+ []
+
+[2] [3]
+Overfull \hbox (38.79854pt too wide) in paragraph at lines 139--141
+[]\OT1/cmr/m/n/10.95 Call a se-quence of set up rou-tines. All set up rou-tines
+ can be found in \OT1/cmtt/m/n/10.95 set[]up[]routines.f90\OT1/cmr/m/n/10.95 .
+ []
+
+[4]
+Overfull \hbox (8.87022pt too wide) in paragraph at lines 175--175
  []\OT1/cmtt/m/n/10.95 integer, parameter :: irho = 1, rmom = 2, zmom = 3, amom
  = 4, ener = 5[] 
  []
 
-[4] (./manual.aux) ) 
+[5] (./manual.aux) ) 
 Here is how much of TeX's memory you used:
- 3676 strings out of 478269
- 56364 string characters out of 5846374
- 356600 words of memory out of 5000000
- 21690 multiletter control sequences out of 15000+600000
+ 3677 strings out of 478269
+ 56372 string characters out of 5846374
+ 356610 words of memory out of 5000000
+ 21691 multiletter control sequences out of 15000+600000
  477988 words of font info for 62 fonts, out of 8000000 for 9000
  1302 hyphenation exceptions out of 8191
- 69i,6n,76p,898b,303s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 69i,6n,76p,898b,322s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on manual.dvi (4 pages, 12412 bytes).
+Output written on manual.dvi (5 pages, 15312 bytes).

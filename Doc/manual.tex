@@ -11,8 +11,8 @@
 \newcommand\bv{\begin{verbatim}}
 \newcommand\ever{\end{verbatim}}
 
-\title{Instructions for running {\sc Pade}}
-\author{Karim Shariff}
+\title{Instructions for running {\sc Pad\'e}}
+\author{Karim Shariff \\ \today}
 \address{NASA Ames Research Center}
 \email{Karim.Shariff@nasa.gov}
 
@@ -20,14 +20,14 @@
 \maketitle
 
 \section{Basic description}
-The {\tt pade} code simulates protoplanetary disks in cylindrical coordinates
+The {\tt pade} code simulates protoplanetary disk hydrodynamics in cylindrical coordinates
 $(r, z, \phi)$.  Currently the compressible inviscid/viscous hydrodynamic equations have been implemented.
 It is a finite-difference code and the compact 4th-order standard Pad\'e scheme is used for spatial differencing.  
-Pad\'e differentiation is known to have spectral-like resolving power.
-Numerical boundary schemes (for the non-periodic direction) are chosen so as to provide discrete conservation.
+Pad\'e differentiation is known to have spectral-like resolving power.  The $z$ direction can be periodic or
+non-periodic.  The 4th order Runge-Kutta is used for time advancement.  
+A more accurate version of the FARGO technique for eliminating the time-step restriction imposed by Keplerian advection has been implemented.  Capturing of shocks that are not too strong can be done by activating using artificial bulk viscosity.
 
-The 4th order Runge-Kutta is used for time advancement.  
-A more accurate version of the FARGO technique (compared Masset's original implementation) for eliminating the time-step restriction imposed by Keplerian advection has been implemented.  Capturing of shocks that are not too strong is done using artificial bulk viscosity.
+\section{Test and application subroutines}
 
 There are several application subroutines and test case subroutines that come with the code.  You can list them by going into the {\tt /Src} directory and typing {\tt ls -1 app*} giving
 
@@ -38,23 +38,37 @@ app_hydrostatic_test.f90
 app_pade_diff_test.f90
 app_single_vortex_fargo_test.f90
 app_taylor_couette.f90
-app_user.f90
 app_vortex_pair.f90
 app_vsi_3D.f90
+app_user.f90
 \end{verbatim}
 
-The subroutine {\tt app\_euler1d\_tests.f90} runs in serial mode or with mpi and a single processor.  The subroutine {\tt app\_user.f90} is a placeholder for a user to write his/her own application.  It is currently blank, however, in a future release it
-we will populate it with elements that every application will typically have.
+In the main directory of the distribution is a sample namelist input file called {\tt input\_file}.  One selects the application/test to be run by setting the value of {\tt i\_run\_type}.  The input data for each application/test follows in different sections.
+
+Note: The following subroutines are very simple 1D tests and run either in serial mode or with mpi and a single processor:
+\begin{verbatim}
+app_euler1d_tests.f90
+app_homentropic_solid_body_rotation_test.f90
+app_hydrostatic_test.f90
+app_pade_diff_test.f90
+\end{verbatim}
+
+The subroutine {\tt app\_user.f90} is a placeholder for a user to write his/her own application.  It is populated with the basic elements that every application will typically have.  The user can modify it to suit his/her purposes.
+
+To make a run requires an executable called {\tt pade} and {\tt input\_file}.  We next describe how to set up the Makefile so as to create an executable.
 
 \section{Setting up the makefile}
 
 \begin{enumerate}
-\item Begin by editing {\tt /Src/Makefile}.  It begins with a section that must be set-up by the user.  The first variable that needs to be set is {\tt parallel}.  Set it equal to {\tt yes} for an mpi code or {\tt no} for a serial code.
-\item You can set the rest of the variables equal to {\tt no}.  However, read their descriptions in case you need them for debugging in the future.
-\item The next thing you need to do is specify how to how to invoke your fortran90 compiler and your mpi fortran.  You can do this for different hosts you use as indicated in the conditional statements. 
+\item Begin by editing {\tt /Src/Makefile}.  It begins with a section that must be set-up by the user.  The first variable that needs to be set is {\tt parallel}.  Set it equal to {\tt yes} to generate an mpi code or {\tt no} to generate a serial code.  Note: The name of the final executable will be {\tt pade} for both cases.
+\item You can set the rest of the variables equal to {\tt no}.  However, read their descriptions in case you need them (especially for debugging) in the future.
+\item The next thing you need to do is specify how to invoke your fortran90 compiler and your mpi fortran.  
+The variables you will need to set are {\tt fortran\_compiler} and {\tt mpi\_fortran}.
+You can do this for the different hosts you use as indicated in the conditional statements.  Note that certain things (mostly parameters for run time checks) are set depending on whether {\tt fortran\_compiler} is {\tt gfortran} or {\tt ifort}.  If you use the different compiler then
+you will have to add the options for your compiler.
 \item The code uses an FFT to implement the corrected Fargo method for Keplerian advection.
 In the makefile you can either set the variable {\tt fft} equal to {\tt fftw} to use the FFTW library, or set {\tt fft = rogallo} if you are too lazy to install the FFTW library.  The Rogallo fft comes supplied with the code.
-For production runs I recommend  that you use FFTW since I have I use the Rogallo FFT only very early. on during code development and cannot guarantee its correctness.  If you set {\tt fft = fftw} then you will need to specify {\tt fftw\_include\_path} and {\tt fftw-library-path}.
+For production runs I recommend  that you use FFTW since I used the Rogallo FFT only very early on during code development and cannot guarantee its correctness.  If you set {\tt fft = fftw} then you will need to specify {\tt fftw\_include\_path} and {\tt fftw-library-path}.
 \item That's it.
 \end{enumerate}
 
@@ -62,7 +76,17 @@ For production runs I recommend  that you use FFTW since I have I use the Rogall
 
 \begin{enumerate}
 \item The executable is called {\tt pade} and is created in {\tt /Src}  by issuing {\tt make pade} in {\tt /Src}.
-\item For future use, note that there are two optional command line options you can specify to {\tt make} for debugging purposes.  These options are {\tt print} and {\tt checks}.  If you type {\tt make pade print=yes}, then the code will write extremely verbose output to stdout about what it is doing.  If you type {\tt make pade checks=yes}. then compiler run-time checks will be enabled.
+\item For future use, note that there are three optional command line variables you can give to {\tt make} for debugging/timing purposes.  These variables are {\tt print}, {\tt checks}, and {\tt transpose\_timing}.  
+\begin{itemize}
+\item {\tt make pade print=yes} causes extremely verbose output to be written stdout about what it is doing.  If you wish to make use of this feature in your own user application, you should enclose your print statements as follows:
+\begin{verbatim}
+#ifdef debug_print
+   if (my_node .eq. 0) print *, ' node 0: Sample debugging output'
+#endif 
+\end{verbatim}
+\item {\tt make pade checks=yes} causes compiler run-time checks to be enabled.  Currently, only the options for the gfortran and ifort compilers have been implemented.
+\item {\tt make tranpose\_timing=yes} causes information to be output about the cpu time taken by transpose routines.
+\end{itemize}
 \end{enumerate}
 
 \section{Running the shock-tube test case}
@@ -106,25 +130,44 @@ mpirun -np 8 pade
 
 \section{Writing your own application subroutine}
 
-The source file {\tt app\_user.f90} is a place holder for you to write your own application.  Currently it is empty, however, in the future releases we plan to populate with the main elements that any application must have.  For now you can start with a current application subroutines (whose source file name is prefixed with {\tt app\_}) that is closest to what you would like to accomplish.
+The source file {\tt app\_user.f90} is a place holder for you to write your own application.  It is populated with the main elements that any application must have.   You can also start with a current application subroutines (whose source file name is prefixed with {\tt app\_}) that is closest to what you would like to accomplish.
 
 You will see that the basic steps in an application subroutine are the following.
 
 \begin{enumerate}
-\item Read some run parameters needed from the namelist file {\tt input\_file}.
-\item {\tt call initialize} with the appropriate arguments.
-In case of a restart, {\tt call initialize} will cause the restart file to be read.
-For a fresh start it will also generate the mesh.
+\item Read some run parameters from the namelist file {\tt input\_file}.
+\item Call a sequence of set up routines.  All set up routines can be found in {\tt set\_up\_routines.f90}.  All of these three must
+be called in this sequence:
+\begin{verbatim}
+call set_up_domain_mesh_and_partition
+call set_up_thermal_parameters
+call set_up_boundary_conditions
+\end{verbatim}
+\item Activate certain features by calling optional ``activate'' subroutines.  These routines are to be found {\tt activate\_routines.f90}.
+Here is a complete list:
+\begin{verbatim}
+call activate_gravity
+call activate_fargo
+call activate_pade_filter
+call activate_artificial_pressure
+call activate_viscosity
+call activate_plotting_shift
+\end{verbatim}
 \item Assign the initial field in the q array (for fresh start).
+
 \item Set up a time stepping loop.  The main ingredients in this loop
 will be:
+\begin{enumerate}
 \item {\tt call rk4}, the fourth-order time stepping subroutine.
 \item Call routines for plotting output at regular intervals.  You can
 invoke existing plotting output routines which can be found in
 {\tt plotting\_output.f90}.  Or you can write your own.
-
-\item {\tt call finalize}.  This will write a save file named {\tt save},
-and finalize mpi for an mpi run.
+\end{enumerate}
+\item {\tt call terminate\_with\_save}.  This will write a ``save'' file of the flow
+field which can be used as restart file for continuing the run.
+and finalize mpi for an mpi run.  It will also create the file {\tt return\_status.dat}
+with the status code you indicate.  I used it so a PBS script can read it and
+resubmit the job in case the run completed successfully.
 
 \item Degree of freedom indices defined in {\tt module dof\_indices} are
 \begin{verbatim}
