@@ -17,9 +17,14 @@ i_run_type = 6
 /
 !-----------------------------------------------------------------------
 ! Input for i_run_type = 0, i.e., for input to
-! subroutine user_application.  See user_application.f90 for the template
+! subroutine user_application.  See app_user.f90 for the template
 ! which you may modify.
 &user_input
+restart = .false.
+nr = 1
+nz = 1
+nphi = 1
+nsteps = 1
 /
 !-----------------------------------------------------------------------
 ! Input for i_run_type = 1: Euler 1D tests.
