@@ -1,0 +1,29 @@
+!-----------------------------------------------------------------------
+! Input for stretched.f90
+&input
+activate_r_stretching = .true.
+activate_z_stretching = .true
+
+! Left coordinate of region:
+rmin = 0.3d0,
+! End of uniform region
+r0   = 0.8d0,
+! Right coordinate of region
+rmax = 1.3d0,
+! # of points in uniform region including both end-points
+nr_u = 1500,
+! Total number of points in r:
+nr   = 2000
+
+! Bottom coordinate of region:
+zmin = -.15d0
+! End of uniform region on positive side:
+z0   = 0.05d0,
+! Right coordinate of region
+zmax = .15d0,
+! # of points in uniform region including both end-points
+nz_u = 300,
+! Total number of points in r:
+nz   = 400
+/
+!-----------------------------------------------------------------------
