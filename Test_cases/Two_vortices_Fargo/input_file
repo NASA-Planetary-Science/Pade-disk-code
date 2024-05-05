@@ -1,0 +1,36 @@
+!-----------------------------------------------------------------------
+&run_type
+! i_run_type = 0 : User application.
+!            = 1 : Euler 1D tests in "z".
+!            = 2 : Test vertical hydrostatic balance for a thin disk.
+!                  z-direction only.  Can impose acoustic pulse.
+!            = 3 : Test homentropic solid-body rotation. r-direction
+!                  only.  Parameters set internally.
+!            = 4 : Single vortex Fargo test.
+!            = 5 : 3D vertical shear instability.
+!            = 6 : Vortex pair
+!            = 7: Taylor-Couette flow
+i_run_type = 6
+/
+!-----------------------------------------------------------------------
+! Input for i_run_type = 6: Vortex Pair
+! See app_vortex_pair.f90 for the application subroutine.
+&vp_input
+restart = .false.,
+nr = 512,
+nphi = 512,
+cfl = 1.0d0,
+nsteps = 10000
+tecplot_interval = 1000,
+save_interval    = 1000,
+tau_filter = 0.10d0,
+apply_fargo_trick = .true.,
+integer_shifts = .false.,
+apply_fargo_correction = .true.,
+use_supplied_dt = .false.,
+dt = 4.9063d-5,
+isothermal = .true.,
+apply_artificial_pressure = .false.,
+C_ap = 1.0d0,
+/
+!-----------------------------------------------------------------------
