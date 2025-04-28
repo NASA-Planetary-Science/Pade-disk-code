@@ -2,4 +2,4 @@ Pade is a Fortran90 code to simulate hydrodynamic turbulence in protoplanetary d
 To get started read manual.pdf in the /Doc directory.
 For help contact Karim.Shariff@nasa.gov
 
-This version is 1.0 and was uploaded on May 4, 2024
+This is version 1.1 and was uploaded to github on April 28, 2025
