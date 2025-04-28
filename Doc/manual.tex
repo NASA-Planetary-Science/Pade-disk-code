@@ -20,11 +20,11 @@
 \maketitle
 
 \section{Basic description}
-The {\tt pade} code simulates protoplanetary disk hydrodynamics in cylindrical coordinates
+{\sc Pad\'e} simulates protoplanetary disk hydrodynamics in cylindrical coordinates
 $(r, z, \phi)$.  Currently the compressible inviscid/viscous hydrodynamic equations have been implemented.
 It is a finite-difference code and the compact 4th-order standard Pad\'e scheme is used for spatial differencing.  
 Pad\'e differentiation is known to have spectral-like resolving power.  The $z$ direction can be periodic or
-non-periodic.  The 4th order Runge-Kutta is used for time advancement.  
+non-periodic.  The 4th order Runge-Kutta method is used for time advancement.  
 A more accurate version of the FARGO technique for eliminating the time-step restriction imposed by Keplerian advection has been implemented.  Capturing of shocks that are not too strong can be done by activating using artificial bulk viscosity.
 
 \section{Test and application subroutines}
