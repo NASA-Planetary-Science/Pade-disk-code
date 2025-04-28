@@ -93,30 +93,31 @@ apply_fargo_trick = .false.,
 integer_shifts = .false.,
 apply_fargo_correction = .false.,
 use_supplied_dt = .false.,
-dt_supplied = 0.00034d0,
+dt = 0.00034d0,
 isothermal = .true.,
 /
 !-----------------------------------------------------------------------
 ! Input for i_run_type = 5: 3D vertical shear instability
 ! See app_vsi_3D.f90 for the code.
 &vsi_3D_input
-plot_many_horiz_planes = .false.
+plot_many_horiz_planes = .false
+plot_vort_and_dil_in_many_merid_planes_at_first_step = .true.
+nphi_planes = 8
 time_interval_for_many_horiz_plots = 0.5d0
 restart = .false.
 ! 1 : Old style restart file with basic state
 ! 2 : New style restart file without basic state
 file_version = 2
-perturb = .true.
+perturb = .false.
 isothermal = .true.
-nr = 576
-nz = 576
-nphi = 1
+nr = 32
+nz = 32
+nphi = 32
 phi_max_over_pi = 2.d0
 cfl = 1.5d0
 dt_min = 1.d-8
-nsteps = 2000
+nsteps = 3000
 tecplot_interval  = 1000
-iphi_plot = 1
 !
 output_profiles   = .false.
 profiles_interval = 20000000
@@ -130,8 +131,8 @@ time_interval_for_phi_Reynolds_averages = 0.5d0
 fluctuation_ke_interval = 200
 ! Interval for intermediate writing of a file called "save_xxxx" or "mpi_save_xxxx", 
 ! with the same format as a restart file.
-save_interval     = 1000
-wavy_perturbation = .false.
+save_interval     = 3000
+wavy_perturbation = .true.
 zmax_over_H0      = 3.5d0
 
 use_rsize_for_domain = .true.
@@ -148,8 +149,8 @@ tau_cooling_over_t_Kepler_at_mid_radius = 0.d0
 !
 apply_pade_filter = .true.
 eps_or_tau = 'eps'
-eps_filter = 0.125d0
-tau_filter = 0.05d0
+eps_filter = 0.12d0
+tau_filter = 0.015d0
 !
 apply_artificial_pressure = .true.
 C_ap = 1.3d0
@@ -217,7 +218,7 @@ apply_fargo_trick = .false.,
 integer_shifts = .false.,
 apply_fargo_correction = .false.,
 use_supplied_dt = .false.,
-dt_supplied = 4.9063d-5,
+dt = 4.9063d-5,
 isothermal = .true.,
 apply_artificial_pressure = .false.,
 C_ap = 1.0d0,
@@ -305,12 +306,11 @@ nz = 512
 nphi = 1024
 phi_max_over_pi = 2.d0
 
-! Time stepping:
 cfl = 1.5d0
 dt_min = 1.d-8
 nsteps = 30000
-use_supplied_dt   = .false.
-dt_supplied       = 2.691e-4
+use_supplied_dt = .true.
+dt_supplied     = 2.77e-4
 
 tecplot_interval  = 500
 output_profiles   = .false.
@@ -325,7 +325,7 @@ time_interval_for_phi_Reynolds_averages = 0.5d0
 fluctuation_ke_interval = 200
 ! Interval for intermediate writing of a file called "save_xxxx" or "mpi_save_xxxx", 
 ! with the same format as a restart file.
-save_interval     = 270
+save_interval     = 2000
 wavy_perturbation = .true.
 zmax_over_H0      = 3.5d0
 
@@ -345,7 +345,7 @@ apply_pade_filter = .true.
 eps_or_tau = 'eps'
 eps_filter = 0.125d0
 tau_filter = 0.05d0
-filter_interval = 2
+filtering_interval = 2
 !
 apply_artificial_pressure = .true.
 C_ap = 1.3d0
@@ -370,7 +370,7 @@ zmax_BC = 2
 ! This flag is for a non-reflective BC.
 ibalanced = 1
 
-apply_fargo_trick      = .true.
+apply_fargo_trick      = .false.
 ! This is needed only if the above is .true.:
 apply_fargo_correction = .true.
 

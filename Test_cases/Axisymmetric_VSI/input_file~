@@ -97,6 +97,28 @@ dt_supplied = 0.00034d0,
 isothermal = .true.,
 /
 !-----------------------------------------------------------------------
+! Input for i_run_type = 6: Vortex Pair
+! See app_vortex_pair.f90 for the application subroutine.
+&vp_input
+restart = .false.,
+nr = 512,
+nphi = 512,
+cfl = 1.5d0,
+nsteps = 100000,
+hit_target = .true.
+t_target   = 4.d0
+tecplot_interval = 200,
+tau_filter = 0.01d0,
+apply_fargo_trick = .false.,
+integer_shifts = .false.,
+apply_fargo_correction = .false.,
+use_supplied_dt = .false.,
+dt_supplied = 4.9063d-5,
+isothermal = .true.,
+apply_artificial_pressure = .false.,
+C_ap = 1.0d0,
+/
+!-----------------------------------------------------------------------
 ! Input for i_run_type = 5: 3D vertical shear instability
 ! See app_vsi_3D.f90 for the code.
 &vsi_3D_input
@@ -108,13 +130,13 @@ restart = .false.
 file_version = 2
 perturb = .true.
 isothermal = .true.
-nr = 576
-nz = 576
+nr = 512
+nz = 512
 nphi = 1
 phi_max_over_pi = 2.d0
 cfl = 1.5d0
 dt_min = 1.d-8
-nsteps = 2000
+nsteps = 5000
 tecplot_interval  = 1000
 iphi_plot = 1
 !
@@ -131,8 +153,8 @@ fluctuation_ke_interval = 200
 ! Interval for intermediate writing of a file called "save_xxxx" or "mpi_save_xxxx", 
 ! with the same format as a restart file.
 save_interval     = 1000
-wavy_perturbation = .false.
-zmax_over_H0      = 3.5d0
+wavy_perturbation = .true.
+zmax_over_H0      = 3.0d0
 
 use_rsize_for_domain = .true.
 ! If the above is .true., this will determine the domain size:
@@ -148,7 +170,7 @@ tau_cooling_over_t_Kepler_at_mid_radius = 0.d0
 !
 apply_pade_filter = .true.
 eps_or_tau = 'eps'
-eps_filter = 0.125d0
+eps_filter = 0.12d0
 tau_filter = 0.05d0
 !
 apply_artificial_pressure = .true.
@@ -199,28 +221,6 @@ d1 = 0.4d0
 d2 = 0.5d0
 n_decay_steps = 20
 tau_decay = 0.d0
-/
-!-----------------------------------------------------------------------
-! Input for i_run_type = 6: Vortex Pair
-! See app_vortex_pair.f90 for the application subroutine.
-&vp_input
-restart = .false.,
-nr = 512,
-nphi = 512,
-cfl = 1.5d0,
-nsteps = 100000,
-hit_target = .true.
-t_target   = 4.d0
-tecplot_interval = 200,
-tau_filter = 0.01d0,
-apply_fargo_trick = .false.,
-integer_shifts = .false.,
-apply_fargo_correction = .false.,
-use_supplied_dt = .false.,
-dt_supplied = 4.9063d-5,
-isothermal = .true.,
-apply_artificial_pressure = .false.,
-C_ap = 1.0d0,
 /
 !-----------------------------------------------------------------------
 ! Input for i_run_type = 7: Taylor-Couette flow
