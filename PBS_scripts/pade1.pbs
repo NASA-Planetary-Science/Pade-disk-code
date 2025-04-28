@@ -1,0 +1,54 @@
+#!/bin/tcsh
+##PBS -q devel
+#PBS -q normal
+##PBS -W group_list=a2296
+#PBS -j oe
+#PBS -k oed
+#PBS -M Karim.Shariff@nasa.gov                                                  
+#PBS -m bae   
+####PBS -l select=19:ncpus=28:model=bro -lwalltime=0:30:00
+#PBS -l select=86:ncpus=24:model=has -lwalltime=8:00:00
+##PBS -l select=74:ncpus=28:model=bro -lwalltime=0:30:00
+##PBS -l select=102:ncpus=20:model=ivy     -lwalltime=0:30:0
+##PBS -l select=16:ncpus=128:model=rom_ait -lwalltime=8:00:00
+##PBS -l select=13:ncpus=40:model=sky_ele -lwalltime=0:30:00
+#PBS -l site=needed=/home4+/home5+/nobackupp17
+
+# Info on Pleiades nodes:
+# Node type Cores/node SBU factor
+# san       16         0.47
+# ivy       20         0.66
+# has       24         0.80
+# bro       28         1.00
+# sky_ele   40         1.59
+
+# Delete any old files at the beginning of the job.  We want to re-submit
+# only if we have new file:
+\rm return_status.dat
+\rm name_of_save_file_at_termination.dat
+#
+setenv MPI_IB_RAILS 2
+#/u/scicon/tools/bin/several_tries mpiexec -np 512 pade
+mpiexec -np 2048 pade1.1
+
+###########################################################
+#  The following code is for automatic restart.  To enable it set the
+#  variable resubmit = 1 and make sure that restart = .true. in the input_file.
+#
+#
+set resubmit=1
+# Re-submit
+if ($resubmit == 1) then
+   if ( -e return_status.dat ) then
+      set sv1=`cat return_status.dat`
+      set sv2=`cat name_of_save_file_at_termination.dat`
+      echo "Return status is $sv1"
+      echo "Name of last save file is $sv2"
+      if ($sv1 == 0) then
+         \cp $sv2 mpi_restart_version2
+         qsub pade.pbs
+      endif
+   endif
+endif
+
+
