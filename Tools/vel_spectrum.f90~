@@ -49,7 +49,7 @@ do ifile = 1, max_files
    nfiles = nfiles + 1
    print *, ' opening ', filename, ' filename = ', filename, ' nfiles = ', nfiles
 
-   open (unit = lun_tecplot, file = filename, form = 'formatted', status = 'old', &
+e   open (unit = lun_tecplot, file = filename, form = 'formatted', status = 'old', &
          access = 'direct', recl = 13*9 + 1)
 
    read(lun_tecplot, 1, rec = 1) t

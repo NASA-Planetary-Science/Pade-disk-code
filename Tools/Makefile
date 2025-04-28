@@ -117,6 +117,8 @@ exec10 = pzt_averages
 exec11 = enstrophy_spectrum
 exec12 = vel_spectrum
 exec13 = make_log_log_line
+exec14 = Tphiz_model
+exec15 = pdf_vort
 
 objects1 = partition_tool.o
 objects2 = time_average_profiles.o
@@ -131,6 +133,8 @@ objects10 = pzt_averages.o
 objects11 = enstrophy_spectrum.o
 objects12 = vel_spectrum.o
 objects13 = make_log_log_line.o
+objects14 = Tphiz_model.o
+objects15 = pdf_vort.o
 
 $(exec1):	$(objects1)
 		$(fortran) -o $(exec1) $(objects1)
@@ -171,11 +175,19 @@ $(exec12):	$(objects12)
 $(exec13):	$(objects13)
 		$(fortran) -o $(exec13) $(objects13)
 
+$(exec14):	$(objects14)
+		$(fortran) -o $(exec14) $(objects14)
+
+$(exec15):	$(objects15)
+		$(fortran) -o $(exec15) $(objects15)
+
+
 # The dashes below make the command continue even after an error, e.g., the file does not exist.
 clean:
 	-\rm *.mod
 	-\rm *.o
-	-\rm $(exec1) $(exec2) $(exec3) $(exec4) $(exec5) $(exec6) $(exec7) $(exec8) $(exec9) $(exec10) $(exec11)
+	-\rm $(exec1) $(exec2) $(exec3) $(exec4) $(exec5) $(exec6) $(exec7) $(exec8) $(exec9) $(exec10) $(exec11) \
+             $(exec12) $(exec13) $(exec14) $(exec15)
 
 .f90.o :
 	$(info fortran options are $(fortran_options))
